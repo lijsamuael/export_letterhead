@@ -1,0 +1,108 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-11-24 22:12:47.666295",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+  "field_order": [
+  "enabled",
+  "section_break_mztk",
+  "letterhead_template",
+  "column_break_ieyr",
+  "font_settings_section",
+  "font_name",
+  "font_size",
+  "column_break_guhx",
+  "add_printed_by",
+  "instruction_section_section",
+  "instructions"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enable Export Letterhead"
+  },
+  {
+   "fieldname": "section_break_mztk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Use Jinja2 template syntax. Each line becomes a row. Use | or tab to separate columns.\n\nAvailable Variables:\n- {{ company }} - Company name\n- {{ doctype }} - Document type or report name\n- {{ doc.field_name }} - Access document fields (e.g., {{ doc.name }}, {{ doc.title }})\n- {{ user_fullname }} - Current user's full name\n- {{ date }} - Current date\n- {{ time }} - Current time\n- {{ now }} - Current datetime\n- {{ frappe }} - Frappe object for advanced scripting\n\nExamples:\n1. Simple single column:\n{{ company }}\nDocument Export\n\n2. Multi-column (using | separator):\n{{ company }} | {{ doctype }}\nDocument: {{ doc.name if doc else 'Export' }} | Date: {{ date }}\n\n3. Multi-column (using tab separator):\n{{ company }}\t{{ user_fullname }}\t{{ date }}\n\n4. With conditional logic:\n{% if doc %}\nDocument: {{ doc.name }}\nCompany: {{ doc.company if doc.company else company }}\n{% else %}\nReport: {{ doctype }}\n{% endif %}",
+   "fieldname": "letterhead_template",
+   "fieldtype": "Small Text",
+   "label": "Letterhead Template"
+  },
+  {
+   "fieldname": "column_break_ieyr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "font_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Font Settings"
+  },
+  {
+   "default": "Arial",
+   "fieldname": "font_name",
+   "fieldtype": "Data",
+   "label": "Font Name",
+   "description": "Enter font name (e.g., Arial, Calibri, Times New Roman). Common fonts: Arial, Calibri, Times New Roman, Courier New, Verdana, Helvetica, Georgia, Tahoma, Trebuchet MS, Comic Sans MS, Impact, Lucida Console, Palatino, Garamond, Book Antiqua, Century Gothic, Franklin Gothic Medium, MS Sans Serif, MS Serif"
+  },
+  {
+   "default": "11",
+   "fieldname": "font_size",
+   "fieldtype": "Int",
+   "label": "Font Size"
+  },
+  {
+   "fieldname": "column_break_guhx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Automatically add a row with printed by, date and time",
+   "fieldname": "add_printed_by",
+   "fieldtype": "Check",
+   "label": "Add 'Printed by' Row"
+  },
+  {
+   "fieldname": "instruction_section_section",
+   "fieldtype": "Section Break",
+   "label": "Instruction Section"
+  },
+  {
+   "default": "TEMPLATE GUIDE:\n\n1. Each line = one row in the export\n2. Use | or tab to separate columns\n3. Empty lines are ignored\n\nAVAILABLE VARIABLES:\n- {{ company }} - Company name\n- {{ doctype }} - Document type or report name\n- {{ doc.field_name }} - Access document fields (e.g., {{ doc.name }}, {{ doc.title }})\n- {{ user_fullname }} - Current user's full name\n- {{ date }} - Current date (YYYY-MM-DD)\n- {{ time }} - Current time (HH:MM:SS)\n- {{ now }} - Current datetime object\n- {{ frappe }} - Frappe object for advanced scripting\n\nEXAMPLES:\n\nExample 1 - Simple header:\n{{ company }}\nExport Report\n\nExample 2 - Multi-column with pipe:\n{{ company }} | {{ doctype }} | {{ date }}\nDocument: {{ doc.name if doc else 'Export' }}\n\nExample 3 - Multi-column with tab:\n{{ company }}\t{{ user_fullname }}\t{{ date }}\n\nExample 4 - With conditional logic:\n{% if doc %}\nDocument: {{ doc.name }}\nCompany: {{ doc.company if doc.company else company }}\n{% else %}\nReport: {{ doctype }}\n{% endif %}\n\nExample 5 - Complex template:\n{{ company }}\n{{ doctype }} Export\nGenerated on: {{ date }} at {{ time }}\nExported by: {{ user_fullname }}",
+   "fieldname": "instructions",
+   "fieldtype": "Small Text",
+   "label": "Template Instructions",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-11-24 22:17:00.004973",
+ "modified_by": "Administrator",
+ "module": "Export Letterhead",
+ "name": "Export Letterhead Settings",
+ "owner": "lijsamuael@gmail.com",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -250,3 +250,10 @@ app_license = "mit"
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
 
+
+boot_session = "export_letterhead.patches.boot_session"
+
+def after_install():
+    # Apply patches after installation
+    from export_letterhead.patches import apply_patches
+    apply_patches()
