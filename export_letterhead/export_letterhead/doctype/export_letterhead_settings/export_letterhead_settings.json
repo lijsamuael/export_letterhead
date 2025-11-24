@@ -4,7 +4,7 @@
  "creation": "2025-11-24 22:12:47.666295",
  "doctype": "DocType",
  "engine": "InnoDB",
-  "field_order": [
+ "field_order": [
   "enabled",
   "section_break_mztk",
   "letterhead_template",
@@ -46,9 +46,9 @@
   {
    "default": "Arial",
    "fieldname": "font_name",
-   "fieldtype": "Data",
+   "fieldtype": "Select",
    "label": "Font Name",
-   "description": "Enter font name (e.g., Arial, Calibri, Times New Roman). Common fonts: Arial, Calibri, Times New Roman, Courier New, Verdana, Helvetica, Georgia, Tahoma, Trebuchet MS, Comic Sans MS, Impact, Lucida Console, Palatino, Garamond, Book Antiqua, Century Gothic, Franklin Gothic Medium, MS Sans Serif, MS Serif"
+   "options": "Arial\nHelvetica\nTimes New Roman\nCourier New\nVerdana\nCalibri\nGeorgia\nComic Sans MS\nImpact\nLucida Console"
   },
   {
    "default": "11",
@@ -84,7 +84,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-11-24 22:17:00.004973",
+ "modified": "2025-11-24 23:10:25.540872",
  "modified_by": "Administrator",
  "module": "Export Letterhead",
  "name": "Export Letterhead Settings",
