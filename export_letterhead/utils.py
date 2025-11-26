@@ -11,14 +11,14 @@ Key Functions:
 - _generate_letterhead_rows(): Generates letterhead rows from template
 
 Template Variables Available:
-- company: Company name from user defaults or document
-- doctype: Document type or report name
-- doc: Document object (if available) - access fields like doc.name, doc.title, etc.
+- company: Company name from user defaults
+- doctype: Document type identifier (list view exports) or fallback name
+- report_name: Report title (e.g., "General Ledger") when available
 - user_fullname: Current user's full name
-- date: Current date
-- time: Current time
-- now: Current datetime object
-- frappe: Frappe object for advanced scripting
+- date: Current date (datetime.date)
+- time: Current time (datetime.time)
+- now: Current datetime object (datetime.datetime)
+- frappe: Frappe object for advanced scripting (database lookups, etc.)
 
 Template Examples:
 1. Simple header:
@@ -26,17 +26,13 @@ Template Examples:
    Export Report
 
 2. Multi-column with separator (| or tab):
-   {{ company }} | {{ doctype }} | {{ date }}
-   
-3. With document fields:
-   Document: {{ doc.name if doc else 'N/A' }}
-   Company: {{ doc.company if doc else company }}
+   {{ company }} | {{ report_name or doctype }} | {{ date }}
 
-4. Conditional logic:
-   {% if doc %}
-   Document: {{ doc.name }}
+3. Conditional logic:
+   {% if report_name %}
+   Report: {{ report_name }}
    {% else %}
-   Report: {{ doctype }}
+   Export: {{ doctype }}
    {% endif %}
 """
 
@@ -100,31 +96,19 @@ def _build_context(args, kwargs):
     to provide variables for template rendering.
     
     Args:
-        args: Tuple of positional arguments (may contain document objects)
-        kwargs: Dictionary of keyword arguments (may contain doctype, doc, report_name)
+        args: Tuple of positional arguments (unused but kept for compatibility)
+        kwargs: Dictionary of keyword arguments (may contain doctype, report_name)
     
     Returns:
         Dictionary with template variables:
         - frappe: Frappe object
         - user_fullname: Current user's full name
-        - doctype: Document type or report name
-        - doc: Document object (if available)
-        - company: Company name
+        - doctype: Document type identifier or filename
+        - report_name: Report title (if available)
+        - company: Company name (user default)
         - date: Current date
         - time: Current time
         - now: Current datetime
-    
-    Example context:
-        {
-            "frappe": <frappe object>,
-            "user_fullname": "John Doe",
-            "doctype": "Sales Invoice",
-            "doc": <document object>,
-            "company": "Acme Corp",
-            "date": datetime.date(2025, 1, 15),
-            "time": datetime.time(14, 30, 0),
-            "now": datetime.datetime(2025, 1, 15, 14, 30, 0)
-        }
     """
     context = {
         "frappe": frappe,
@@ -135,32 +119,21 @@ def _build_context(args, kwargs):
     except Exception:
         context["user_fullname"] = frappe.session.user if hasattr(frappe.session, 'user') else None
 
-    # Extract doctype from kwargs or args
     if isinstance(kwargs, dict):
         if kwargs.get("doctype"):
             context["doctype"] = kwargs.get("doctype")
-        if kwargs.get("doc"):
-            context["doc"] = kwargs.get("doc")
         if kwargs.get("report_name"):
             context["report_name"] = kwargs.get("report_name")
-            if not context.get("doctype"):
-                context["doctype"] = kwargs.get("report_name")
     
-    # Try to find a doc in args
-    if not context.get("doc"):
-        for a in args:
-            if hasattr(a, "doctype") and hasattr(a, "name"):
-                context["doc"] = a
-                if not context.get("doctype"):
-                    context["doctype"] = a.doctype
-                break
+    # Prefer report_name, fall back to doctype if missing
+    if context.get("report_name") and not context.get("doctype"):
+        context["doctype"] = context["report_name"]
+    elif context.get("doctype") and not context.get("report_name"):
+        context["report_name"] = context["doctype"]
     
-    # Try to get company from various sources
+    # Company from user defaults
     try:
-        company = frappe.defaults.get_user_default("company") or ""
-        if context.get("doc") and hasattr(context["doc"], "company"):
-            company = context["doc"].company or company
-        context["company"] = company
+        context["company"] = frappe.defaults.get_user_default("company") or ""
     except Exception:
         context["company"] = ""
     
@@ -264,6 +237,10 @@ def _generate_letterhead_rows(settings, context=None):
     if context is None:
         context = {}
     
+    # Ensure report_name falls back to doctype if not already set
+    if not context.get("report_name") and context.get("doctype"):
+        context["report_name"] = context["doctype"]
+    
     # Add common context variables (these are always available)
     context.update({
         "frappe": frappe,
@@ -293,8 +270,7 @@ def _generate_letterhead_rows(settings, context=None):
                 cells = [line]
             rows.append(cells)
     
-    # Add "Printed by" row if enabled
-    # This row shows who printed the export and when
+    # Add "Printed by" row if enabled (shows who exported and when)
     if settings.get("add_printed_by", True):
         printed_by_row = [
             f"Printed by: {context.get('user_fullname', frappe.session.user)}",
@@ -302,5 +278,9 @@ def _generate_letterhead_rows(settings, context=None):
             f"Time: {context.get('time', '')}"
         ]
         rows.append(printed_by_row)
+    
+    # Always add a blank row at the end to visually separate header from data
+    if rows:
+        rows.append([""])
     
     return rows

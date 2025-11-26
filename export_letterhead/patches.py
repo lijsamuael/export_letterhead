@@ -131,7 +131,7 @@ def _make_xlsx_with_letterhead(data, sheet_name, wb=None, column_widths=None):
         if export_context:
             context = export_context.copy()
         else:
-            context = _build_context((data, sheet_name), {"doctype": sheet_name})
+            context = _build_context((data, sheet_name), {"doctype": sheet_name, "report_name": sheet_name})
         
         # Generate letterhead rows (includes template rows + "Printed by" row if enabled)
         letterhead_rows = _generate_letterhead_rows(settings, context)
@@ -272,7 +272,7 @@ def _build_xlsx_response_with_letterhead(data, filename):
             context = export_context.copy()
         else:
             # Build context
-            context = _build_context((data, filename), {"doctype": filename})
+            context = _build_context((data, filename), {"doctype": filename, "report_name": filename})
         
         # Generate letterhead rows
         letterhead_rows = _generate_letterhead_rows(settings, context)
@@ -314,7 +314,7 @@ def _build_csv_response_with_letterhead(data, filename):
             context = export_context.copy()
         else:
             # Build context
-            context = _build_context((data, filename), {"doctype": filename})
+            context = _build_context((data, filename), {"doctype": filename, "report_name": filename})
         
         # Generate letterhead rows
         letterhead_rows = _generate_letterhead_rows(settings, context)
@@ -360,7 +360,7 @@ def _get_csv_bytes_with_letterhead(data, csv_params):
             if isinstance(csv_params, dict) and csv_params.get("doctype"):
                 doctype = csv_params.get("doctype")
             
-            context = _build_context((data,), {"doctype": doctype})
+            context = _build_context((data,), {"doctype": doctype, "report_name": doctype})
         
         # Generate letterhead rows
         letterhead_rows = _generate_letterhead_rows(settings, context)
@@ -460,7 +460,7 @@ def _export_query_with_letterhead_reportview(form_params, csv_params, populate_r
         if doctype:
             frappe.local.export_letterhead_context = _build_context(
                 (),
-                {"doctype": doctype}
+                {"doctype": doctype, "report_name": doctype}
             )
     except Exception:
         pass

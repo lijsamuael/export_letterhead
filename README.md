@@ -8,6 +8,7 @@ Add customizable letterhead headers and font formatting to all Excel and CSV exp
 - ✅ **Template Support**: Use Jinja2 templates with dynamic variables
 - ✅ **Font Control**: Control font name and size for entire export
 - ✅ **Auto Timestamp**: Automatically add "Printed by" row with user, date, and time
+- ✅ **Smart Spacing**: Automatically inserts a blank separator row before export data
 - ✅ **Works Everywhere**: Applies to all Excel/CSV exports (reports, list views, data exports)
 
 ## Installation
@@ -53,16 +54,18 @@ In the **"Letterhead Template"** field, enter your template using Jinja2 syntax.
 - Each line = one row in the export
 - Use `|` (pipe) or `Tab` to separate columns
 - Empty lines are ignored
+- The app automatically inserts a blank separator row after the letterhead
 
 **Available Variables:**
 - `{{ company }}` - Company name
-- `{{ doctype }}` - Document type or report name
-- `{{ doc.field_name }}` - Access document fields (e.g., `{{ doc.name }}`, `{{ doc.title }}`)
+- `{{ doctype }}` - Document type identifier or filename
+- `{{ report_name }}` - Report title (e.g., `General Ledger`) when available
 - `{{ user_fullname }}` - Current user's full name
-- `{{ date }}` - Current date (YYYY-MM-DD)
-- `{{ time }}` - Current time (HH:MM:SS)
-- `{{ now }}` - Current datetime object
+- `{{ date }}` - Current date (datetime.date)
+- `{{ time }}` - Current time (datetime.time)
+- `{{ now }}` - Current datetime (datetime.datetime)
 - `{{ frappe }}` - Frappe object for advanced scripting
+- Date/time objects support `strftime`, e.g., `{{ date.strftime('%B %d, %Y') }}` or `{{ time.strftime('%I:%M %p') }}`
 
 **Template Examples:**
 
@@ -74,30 +77,28 @@ Export Report
 
 **Example 2: Multi-Column with Pipe**
 ```
-{{ company }} | {{ doctype }} | {{ date }}
-Document: {{ doc.name if doc else 'Export' }} | Date: {{ date }}
+{{ company }} | {{ report_name or doctype }} | {{ date.strftime('%B %d, %Y') }}
 ```
 
 **Example 3: Multi-Column with Tab**
 ```
-{{ company }}	{{ user_fullname }}	{{ date }}
+{{ company }}	{{ user_fullname }}	{{ time.strftime('%I:%M %p') }}
 ```
 
 **Example 4: With Conditional Logic**
 ```
-{% if doc %}
-Document: {{ doc.name }}
-Company: {{ doc.company if doc.company else company }}
+{% if report_name %}
+Report: {{ report_name }}
 {% else %}
-Report: {{ doctype }}
+Export: {{ doctype }}
 {% endif %}
 ```
 
 **Example 5: Complex Template**
 ```
 {{ company }}
-{{ doctype }} Export
-Generated on: {{ date }} at {{ time }}
+{{ report_name or doctype }} Export
+Generated on: {{ date.strftime('%B %d, %Y') }} at {{ time.strftime('%I:%M %p') }}
 Exported by: {{ user_fullname }}
 ```
 
@@ -177,14 +178,13 @@ Generated: {{ date }} at {{ time }}
 
 ## Template Tips
 
-### Accessing Document Fields
+### Working with Report Names
 
-When exporting from a document list or report:
 ```jinja2
-{% if doc %}
-Document Number: {{ doc.name }}
-Customer: {{ doc.customer_name if doc.customer_name else 'N/A' }}
-Amount: {{ doc.grand_total if doc.grand_total else 0 }}
+{% if report_name %}
+Report: {{ report_name }}
+{% else %}
+Export: {{ doctype }}
 {% endif %}
 ```
 
@@ -198,12 +198,12 @@ Company Address: {{ frappe.db.get_value("Company", company, "address_line1") }}
 ### Conditional Formatting
 
 ```jinja2
-{% if doctype == "Sales Invoice" %}
+{% if report_name == "Sales Invoice" %}
 Sales Invoice Report
-{% elif doctype == "Purchase Invoice" %}
+{% elif report_name == "Purchase Invoice" %}
 Purchase Invoice Report
 {% else %}
-{{ doctype }} Export
+{{ report_name or doctype }} Export
 {% endif %}
 ```
 
