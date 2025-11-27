@@ -40,6 +40,35 @@ import frappe
 from frappe.utils import now_datetime
 
 
+def _safe_get_value(source, *keys):
+    """
+    Safely fetch a value from dict-like or object-like sources.
+
+    Handles frappe._dict instances (which return None instead of raising AttributeError)
+    and plain dicts/objects. Returns the first non-empty value found for the provided keys.
+    """
+    if not source:
+        return None
+
+    for key in keys:
+        value = None
+        if isinstance(source, dict):
+            value = source.get(key)
+        else:
+            try:
+                value = getattr(source, key)
+            except AttributeError:
+                value = None
+
+        if isinstance(value, str):
+            value = value.strip()
+
+        if value not in (None, ""):
+            return value
+
+    return None
+
+
 def _get_settings():
     """
     Retrieve and validate Export Letterhead Settings.
@@ -124,6 +153,13 @@ def _build_context(args, kwargs):
             context["doctype"] = kwargs.get("doctype")
         if kwargs.get("report_name"):
             context["report_name"] = kwargs.get("report_name")
+
+    # Fallback to request form_dict (helps for older Frappe versions / background jobs)
+    form_dict = getattr(frappe.local, "form_dict", None)
+    if not context.get("doctype"):
+        context["doctype"] = _safe_get_value(form_dict, "doctype", "ref_doctype", "data_doctype")
+    if not context.get("report_name"):
+        context["report_name"] = _safe_get_value(form_dict, "report_name", "report", "title")
     
     # Prefer report_name, fall back to doctype if missing
     if context.get("report_name") and not context.get("doctype"):

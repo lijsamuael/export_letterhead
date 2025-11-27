@@ -39,6 +39,32 @@ from io import BytesIO
 _original_functions = {}
 
 
+def _get_param_value(source, *keys, default=None):
+    """
+    Safely fetch parameter values from dict / frappe._dict / objects.
+    """
+    if not source:
+        return default
+
+    for key in keys:
+        value = None
+        if isinstance(source, dict):
+            value = source.get(key)
+        else:
+            try:
+                value = getattr(source, key)
+            except AttributeError:
+                value = None
+
+        if isinstance(value, str):
+            value = value.strip()
+
+        if value not in (None, ""):
+            return value
+
+    return default
+
+
 def apply_patches():
     """
     Apply all patches for letterhead export functionality.
@@ -404,11 +430,16 @@ def _export_query_with_letterhead(form_params, csv_params, populate_response=Tru
     """
     # Set context for letterhead generation
     try:
-        report_name = form_params.report_name if hasattr(form_params, 'report_name') else getattr(form_params, 'report_name', 'Query Report')
+        report_name = _get_param_value(form_params, "report_name", "report")
+        if not report_name:
+            report_name = _get_param_value(getattr(frappe.local, "form_dict", None), "report_name", "report")
+        if not report_name:
+            report_name = "Query Report"
+
         # Try to get ref_doctype from report
         try:
             report_doc = frappe.get_doc("Report", report_name)
-            ref_doctype = report_doc.ref_doctype if hasattr(report_doc, 'ref_doctype') else None
+            ref_doctype = getattr(report_doc, "ref_doctype", None)
         except Exception:
             ref_doctype = None
         
@@ -456,11 +487,12 @@ def _export_query_with_letterhead_reportview(form_params, csv_params, populate_r
     """
     # Set context for letterhead generation
     try:
-        doctype = form_params.get("doctype") if isinstance(form_params, dict) else getattr(form_params, "doctype", None)
+        doctype = _get_param_value(form_params, "doctype")
+        report_label = _get_param_value(form_params, "report_name", "title", "report") or doctype
         if doctype:
             frappe.local.export_letterhead_context = _build_context(
                 (),
-                {"doctype": doctype, "report_name": doctype}
+                {"doctype": doctype, "report_name": report_label or doctype}
             )
     except Exception:
         pass
